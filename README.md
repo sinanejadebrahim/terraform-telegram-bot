@@ -30,6 +30,8 @@ Getting started with TerraBot is a straightforward process. Here are the basic s
 
 5. **Interact with TerraBot**: Start using TerraBot right away! Send commands and interact with your infrastructure using simple text messages. Refer to the [Usage](#usage) section for a list of available commands and examples.
 
+⚠️ this code works for HetznerCloud, you may need to change the show function on other providers to be able to show the right message or just any other field that you want, it's a simple JSON object.
+
 ## Features
 
 TerraBot comes packed with a range of features to simplify your infrastructure management:
