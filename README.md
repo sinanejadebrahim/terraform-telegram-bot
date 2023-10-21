@@ -22,9 +22,13 @@ Getting started with TerraBot is a straightforward process. Here are the basic s
 
 1. **Installation**: Clone this repository to your local environment and for easier use, you can copy the app.py to the same DIR as your terraform files.
 
-2. **Configuration**: Set up your TerraBot by configuring it with your Telegram API token, Replace the token with your own telegram bot token.
+2. install python telegram bot with pip3 (pip3 install python-telegram-bot==13.5)
 
-3. **Interact with TerraBot**: Start using TerraBot right away! Send commands and interact with your infrastructure using simple text messages. Refer to the [Usage](#usage) section for a list of available commands and examples.
+3. **Configuration**: Set up your TerraBot by configuring it with your Telegram API token, Replace the token with your own Telegram bot token.
+
+4. In Telegram, change your bot settings and disable groups after you add it to your group, so your bot cant be added to any other groups
+
+5. **Interact with TerraBot**: Start using TerraBot right away! Send commands and interact with your infrastructure using simple text messages. Refer to the [Usage](#usage) section for a list of available commands and examples.
 
 ## Features
 
