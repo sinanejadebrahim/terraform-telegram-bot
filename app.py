@@ -54,13 +54,18 @@ def plan(update: Update, context: CallbackContext):
 
 
 def apply(update: Update, context: CallbackContext):
+    
+    chat_id = update.effective_chat.id
+    message_id = update.message.message_id
+    
     if private_check(update):
+        wait_message = update.message.reply_text("Please Wait..")
         num = int(context.args[0])
         apply = subprocess.check_output(["terraform", "apply", "-auto-approve", f"-var=instance_count={num}" ],text=True)
 
         apply_line = [line for line in apply.split('\n') if 'Apply' in line]
         res = terraform_show()
-        update.message.reply_text(apply_line[0])
+        context.bot.edit_message_text(text=apply_line[0], chat_id=chat_id, message_id=wait_message.message_id, parse_mode="MARKDOWN")
         update.message.reply_text(res,parse_mode="MARKDOWN")
 
 # Replace with your own Token
