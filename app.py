@@ -42,31 +42,40 @@ def show_instances(update: Update, context: CallbackContext):
 
 def plan(update: Update, context: CallbackContext):
     if private_check(update):
-        num = int(context.args[0])
-        plan = subprocess.check_output(["terraform", "plan", "-var", f"instance_count={num}", "-no-color" ], text=True)
+        try:
+            num = int(context.args[0])
 
-        plan_line = [line for line in plan.split('\n') if 'Plan:' in line]
+            plan = subprocess.check_output(["terraform", "plan", "-var", f"instance_count={num}", "-no-color" ], text=True)
 
-        if plan_line:
-            update.message.reply_text(plan_line[0])
-        else:
-            update.message.reply_text("No changes. Your infrastructure matches the configuration")
+            plan_line = [line for line in plan.split('\n') if 'Plan:' in line]
+
+            if plan_line:
+                update.message.reply_text(plan_line[0])
+            else:
+                update.message.reply_text("No changes. Your infrastructure matches the configuration")
+        except Exception as e:
+            update.message.reply_text("give me a number after the command")
 
 
 def apply(update: Update, context: CallbackContext):
-    
+
     chat_id = update.effective_chat.id
     message_id = update.message.message_id
     
     if private_check(update):
-        wait_message = update.message.reply_text("Please Wait..")
-        num = int(context.args[0])
-        apply = subprocess.check_output(["terraform", "apply", "-auto-approve", f"-var=instance_count={num}" ],text=True)
+        try:
+            num = int(context.args[0])
+            wait_message = update.message.reply_text("Please Wait..")
 
-        apply_line = [line for line in apply.split('\n') if 'Apply' in line]
-        res = terraform_show()
-        context.bot.edit_message_text(text=apply_line[0], chat_id=chat_id, message_id=wait_message.message_id, parse_mode="MARKDOWN")
-        update.message.reply_text(res,parse_mode="MARKDOWN")
+            apply = subprocess.check_output(["terraform", "apply", "-auto-approve", f"-var=instance_count={num}" ],text=True)
+            apply_line = [line for line in apply.split('\n') if 'Apply' in line]
+            
+            res = terraform_show()
+            context.bot.edit_message_text(text=apply_line[0], chat_id=chat_id, message_id=wait_message.message_id, parse_mode="MARKDOWN")
+            update.message.reply_text(res,parse_mode="MARKDOWN")
+
+        except Exception as e:
+            update.message.reply_text("give me a number after the command")
 
 # Replace with your own Token
 updater = Updater(token='<< TELEGRAM-BOT-TOKEN >>', use_context=True)
