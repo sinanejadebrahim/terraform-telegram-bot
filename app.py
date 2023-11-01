@@ -13,6 +13,7 @@ logging.basicConfig(
     datefmt='%H:%M:%S',
     level=logging.DEBUG
 )
+logger = logging.getLogger(__name__)
 
 # Use your Own chat ID - and group Title to limit the bot to your own group for privacy
 def private_check(update):
@@ -21,12 +22,10 @@ def private_check(update):
     else:
         update.message.reply_text('go play with your own bot , this is mine (: ')
 
+
 def terraform_show():
-    terraform_show_process = subprocess.run(['terraform', 'show', '-json'], stdout=subprocess.PIPE, text=True)
-    terraform_show_output = terraform_show_process.stdout
-    jq_process = subprocess.run(['jq', '.values.root_module.resources[] | " \(.values.name) \(.values.network[].ip) \(.values.server_type) \(.values.status)"'], input=terraform_show_output, stdout=subprocess.PIPE, text=True)
-    output = jq_process.stdout.replace('"','')
-    output = f"*Live Instances*: ```{output} ```"
+    terraform_show = subprocess.run("terraform show -json | jq -r \'.values.root_module.resources[] | \" \(.values.name) \(.values.network[].ip) \(.values.server_type) \(.values.status)\"'", shell=True, text=True, capture_output=True, check=True)
+    output = f"*Live Instances*: ```{terraform_show.stdout} ```"
     return output
 
 
@@ -40,20 +39,15 @@ def show_instances(update: Update, context: CallbackContext):
         res = terraform_show()
         update.message.reply_text(res,parse_mode="MARKDOWN")
 
+
 def plan(update: Update, context: CallbackContext):
     if private_check(update):
         try:
             num = int(context.args[0])
+            plan = subprocess.run(f"terraform plan -var instance_count={num} -no-color | grep Plan: ", shell=True, text=True, capture_output=True, check=True )
+            update.message.reply_text(f"🔄 {plan.stdout}")
 
-            plan = subprocess.check_output(["terraform", "plan", "-var", f"instance_count={num}", "-no-color" ], text=True)
-
-            plan_line = [line for line in plan.split('\n') if 'Plan:' in line]
-
-            if plan_line:
-                update.message.reply_text(plan_line[0])
-            else:
-                update.message.reply_text("No changes. Your infrastructure matches the configuration")
-        except Exception as e:
+        except ValueError as e:
             update.message.reply_text("give me a number after the command")
 
 
@@ -61,20 +55,25 @@ def apply(update: Update, context: CallbackContext):
 
     chat_id = update.effective_chat.id
     message_id = update.message.message_id
-    
+
     if private_check(update):
         try:
             num = int(context.args[0])
             wait_message = update.message.reply_text("Please Wait..")
 
-            apply = subprocess.check_output(["terraform", "apply", "-auto-approve", f"-var=instance_count={num}" ],text=True)
-            apply_line = [line for line in apply.split('\n') if 'Apply' in line]
-            
-            res = terraform_show()
-            context.bot.edit_message_text(text=apply_line[0], chat_id=chat_id, message_id=wait_message.message_id, parse_mode="MARKDOWN")
-            update.message.reply_text(res,parse_mode="MARKDOWN")
+            try:
+                apply = subprocess.run(f"terraform apply -no-color -auto-approve -var=instance_count={num} | grep Apply", shell=True, text=True, capture_output=True, check=True)
+                context.bot.edit_message_text(text=f"✅ {apply.stdout}", chat_id=chat_id, message_id=wait_message.message_id)
+                update.message.reply_text(text=terraform_show(), parse_mode="MARKDOWN")
 
-        except Exception as e:
+            except subprocess.CalledProcessError as e:
+                logger.info("Terraform apply command failed with an error:")
+                logger.info(e.stderr)
+                context.bot.edit_message_text("*Terraform Error* ❌", parse_mode="MARKDOWN", chat_id=chat_id, message_id=wait_message.message_id)
+                update.message.reply_text(e.stderr)
+
+        except ValueError as e:
+            logger.info(e)
             update.message.reply_text("give me a number after the command")
 
 # Replace with your own Token
