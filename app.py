@@ -47,7 +47,7 @@ def plan(update: Update, context: CallbackContext):
             plan = subprocess.run(f"terraform plan -var instance_count={num} -no-color | grep Plan: ", shell=True, text=True, capture_output=True, check=True )
             update.message.reply_text(f"🔄 {plan.stdout}")
 
-        except ValueError as e:
+        except IndexError as e:
             update.message.reply_text("give me a number after the command")
 
 
@@ -72,7 +72,7 @@ def apply(update: Update, context: CallbackContext):
                 context.bot.edit_message_text("*Terraform Error* ❌", parse_mode="MARKDOWN", chat_id=chat_id, message_id=wait_message.message_id)
                 update.message.reply_text(e.stderr)
 
-        except ValueError as e:
+        except IndexError as e:
             logger.info(e)
             update.message.reply_text("give me a number after the command")
 
